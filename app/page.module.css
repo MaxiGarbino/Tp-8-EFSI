@@ -1,10 +1,11 @@
+
 .main {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 6rem;
-  min-height: 100vh;
+  min-height: 100%;
   text-align: center;
 }
 
@@ -12,11 +13,11 @@
   display: flex;
   justify-content: center;
   text-align: center;
-border: 2px solid #fa64cd;
-flex-wrap: nowrap;
-width: 800px;
-padding: 20px;
-margin: 30px;
+  border: 2px solid #fa64cd;
+  flex-wrap: nowrap;
+  width: 800px;
+  padding: 20px;
+  margin: 30px;
 }
 .description {
   display: inherit;

@@ -15,6 +15,7 @@ const Juego = () => {
   const [timeLeft, setTimeLeft] = useState(15);
   const [message, setMessage] = useState('');
   const [showHelp, setShowHelp] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false); // Controla si el juego está en progreso
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -24,7 +25,6 @@ const Juego = () => {
 
         if (!data.error && data.data) {
           setCountries(data.data);
-          selectRandomCountry(data.data);
         }
       } catch (error) {
         console.error('Error fetching countries:', error);
@@ -33,6 +33,12 @@ const Juego = () => {
 
     fetchCountries();
   }, []);
+
+  const startGame = () => {
+    selectRandomCountry(countries);
+    setGameStarted(true);
+    setMessage('');
+  };
 
   const selectRandomCountry = (countriesArray) => {
     const randomCountry = countriesArray[Math.floor(Math.random() * countriesArray.length)];
@@ -46,7 +52,7 @@ const Juego = () => {
       setMessage(`¡Correcto! Has sumado ${10 + timeLeft} puntos.`);
     } else {
       setScore(score - 1);
-      setMessage(`Incorrecto. La bandera era de ${selectedCountry.name}.`);
+      setMessage(`No es la respuesta. La bandera era de ${selectedCountry.name}.`);
     }
 
     setGuess('');
@@ -63,10 +69,12 @@ const Juego = () => {
   };
 
   const handleTimeUp = () => {
-    setScore(score - 1);
-    const countryName = selectedCountry ? selectedCountry.name : 'desconocido';
-    setMessage(`Tiempo agotado. La bandera era de ${countryName}.`);
-    selectRandomCountry(countries);
+    if (gameStarted) {
+      setScore(score - 1);
+      const countryName = selectedCountry ? selectedCountry.name : 'desconocido';
+      setMessage(`Tiempo agotado. La bandera era de ${countryName}.`);
+      selectRandomCountry(countries);
+    }
   };
 
   const handlePlayerNameChange = (e) => {
@@ -84,64 +92,73 @@ const Juego = () => {
     setPlayerName('');
     setGuess('');
     setSelectedCountry(null);
-    setTimeLeft(15);
     setMessage('');
     setShowHelp(false);
-    fetchCountries(); // Volver a cargar las banderas
+    setGameStarted(false); // Detener el juego y volver a la pantalla inicial
   };
 
   const endGame = () => {
     saveScore();
     setMessage(`Partida terminada. Tu puntuación final es ${score}.`);
-    setTimeLeft(0); // Detener el temporizador
-    // Reiniciar el juego después de un pequeño retraso para que el mensaje sea visible
-    setTimeout(resetGame, 2000);
+    setGameStarted(false); // Marcar que el juego ha terminado
+    resetGame();
+    //localStorage.clear()
   };
-
-  useEffect(() => {
-    saveScore();
-  }, [score]);
 
   return (
     <div className={styles.juegoContainer}>
-      <h1>Adivina la bandera</h1>
-      <p>Puntos: {score}</p>
-      <input
-        type="text"
-        value={playerName}
-        onChange={handlePlayerNameChange}
-        placeholder="Ingresa tu nombre"
-        className={styles.input}
-      />
-      <Timer timeLeft={timeLeft} setTimeLeft={setTimeLeft} onTimeUp={handleTimeUp} />
-      {selectedCountry ? (
-        <div className={styles.flagContainer}>
-          <img
-            src={selectedCountry.flag}
-            alt={`Bandera de ${selectedCountry.name}`}
-            className={styles.flagImage}
-          />
-          <p>¿Cuál país es esta bandera?</p>
+      {!gameStarted ? (
+        <div className={styles.startScreen}>
+          <h1>Bienvenido al Juego de Adivinar la Bandera</h1>
           <input
             type="text"
-            value={guess}
-            onChange={(e) => setGuess(e.target.value)}
-            placeholder="Escribe el nombre del país"
+            value={playerName}
+            onChange={handlePlayerNameChange}
+            placeholder="Ingresa tu nombre"
             className={styles.input}
           />
-          <button onClick={handleGuess} className={styles.button}>Adivinar</button>
-          <HelpButton onHelp={handleHelp} />
-          <button onClick={endGame} className={styles.button}>Terminar partida</button>
-          {message && <p className={styles.message}>{message}</p>}
-          {showHelp && <p className={styles.helpMessage}>Pista: {selectedCountry.name[0]}...</p>}
+          <button onClick={startGame} className={styles.button2}>Comenzar Juego</button>
+          <ScoreBoard />
         </div>
       ) : (
-        <p className={styles.loading}>Cargando bandera...</p>
+        <>
+          <h1>Adivina la bandera</h1>
+          <p>Puntos: {score}</p>
+          <Timer timeLeft={timeLeft} setTimeLeft={setTimeLeft} onTimeUp={handleTimeUp} />
+          {selectedCountry ? (
+            <div className={styles.flagContainer}>
+              <img
+                src={selectedCountry.flag}
+                alt={`Bandera de ${selectedCountry.name}`}
+                className={styles.flagImage}
+              />
+              <p>¿Cuál país es esta bandera?</p>
+              <input
+                type="text"
+                value={guess}
+                onChange={(e) => setGuess(e.target.value)}
+                placeholder="Escribe el nombre del país"
+                className={styles.input}
+              />
+              <button onClick={handleGuess} className={styles.button}>Adivinar</button>
+              <HelpButton onHelp={handleHelp} />
+              <button onClick={endGame} className={styles.button}>Terminar partida</button>
+              {message && <p className={
+                message.includes('No')
+                  ? styles.messageIncorrect
+                  : styles.messageCorrect
+              }>{message}</p>}
+              {showHelp && <p className={styles.helpMessage}>Pista: {selectedCountry.name[0]}...</p>}
+            </div>
+          ) : (
+            <p className={styles.loading}>Cargando bandera...</p>
+          )}
+
+          <ScoreBoard />
+        </>
       )}
-      <ScoreBoard />
     </div>
   );
 };
-
 
 export default Juego;
