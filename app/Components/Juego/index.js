@@ -37,6 +37,7 @@ const Juego = () => {
   const startGame = () => {
     selectRandomCountry(countries);
     setGameStarted(true);
+    setShowHelp(false);
     setMessage('');
   };
 
@@ -54,7 +55,7 @@ const Juego = () => {
       setScore(score - 1);
       setMessage(`No es la respuesta. La bandera era de ${selectedCountry.name}.`);
     }
-
+    setShowHelp(false);
     setGuess('');
     selectRandomCountry(countries);
   };
@@ -74,6 +75,7 @@ const Juego = () => {
       const countryName = selectedCountry ? selectedCountry.name : 'desconocido';
       setMessage(`Tiempo agotado. La bandera era de ${countryName}.`);
       selectRandomCountry(countries);
+      setShowHelp(false);
     }
   };
 
